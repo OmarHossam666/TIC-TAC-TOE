@@ -37,21 +37,14 @@ void drawBoard(char* spaces, char player, char computer , string name , int play
 
 void playerMove(char* spaces, char player)
 {
-	int number;
+	int move;
 	do
 	{
 		cout << "Enter Your Move(1-9): ";
-		cin >> number;
-		number--;
-	} while (number < 1 || number > 9 || spaces[number] != ' ');
-	spaces[number] = player;
-}
-
-void computerMove(char* spaces, char computer, int difficulty)
-{
-	if (difficulty == 1) easyMove(spaces, computer);
-	else if (difficulty == 2) normalMove(spaces, computer);
-	else if (difficulty == 3) hardMove(spaces, computer);
+		cin >> move;
+	} while (move < 1 || move > 9 || spaces[move] != ' ');
+	move--;
+	spaces[move] = player;
 }
 
 void easyMove(char* spaces, char computer)
@@ -73,6 +66,13 @@ void normalMove(char* spaces, char computer)
 void hardMove(char* spaces, char computer)
 {
 
+}
+
+void computerMove(char* spaces, char computer, int difficulty)
+{
+	if (difficulty == 1) easyMove(spaces, computer);
+	else if (difficulty == 2) normalMove(spaces, computer);
+	else if (difficulty == 3) hardMove(spaces, computer);
 }
 
 bool checkWinner(char* spaces, char player, char computer)
@@ -115,7 +115,9 @@ int main()
 
 	playerMove(spaces, player);
 	drawBoard(spaces, player, computer, name, playerScore, computerScore);
-	
+	computerMove(spaces, computer, difficulty);
+	drawBoard(spaces, player, computer, name, playerScore, computerScore);
+
 	system("pause>0");
 	return 0;
 }
