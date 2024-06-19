@@ -21,7 +21,7 @@ using namespace std;
 * Hard Difficulty: The computer uses the Minimax algorithm to play optimally.
 */
 
-void drawBoard(char* spaces, char player, char computer , string name , int playerScore , int computerScore)
+void drawBoard(char* spaces , string name , int playerScore , int computerScore)
 {
 	cout << "\t\t" << name << ": " << playerScore << "\t" << "Computer: " << computerScore << "\n\n";
 	cout << "\t\t     |" << "     |" << "     " << "\n";
@@ -75,26 +75,40 @@ void computerMove(char* spaces, char computer, int difficulty)
 	else if (difficulty == 3) hardMove(spaces, computer);
 }
 
-bool checkWinner(char* spaces, char player, char computer)
+bool checkWinner(char* spaces, char player)
 {
-	return 0;
+	bool isWinning = 0;
+
+	return isWinning;
 }
 
-bool checkTie(char* spaces, char player, char computer)
+bool checkTie(char* spaces)
 {
-	return 0;
+	for (int i = 0; i < 9; i++)
+	{
+		if (spaces[i] == ' ') return false;
+	}
+	return true;
 }
 
 void loadingScreen()
 {
-	
+	cout << "Loading";
+	for (int i = 0; i < 5; i++)
+	{
+		cout << ".";
+		Sleep(500);
+	}
+	cout << "\n";
+	system("cls");
 }
 
 int main()
 {
 	char spaces[9] = { ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' };
-	char player , computer;
+	char player, computer{} , playingAgain{};
 	int difficulty , playerScore = 0 , computerScore = 0;
+	bool isRunning = 1;
 	string name;
 
 	cout << "\t\tTIC-TAC-TOE-V1.00\n\n";
@@ -112,12 +126,42 @@ int main()
 		if (player == 'X') computer = 'O';
 		else if(player == 'O') computer = 'X';
 	} while (player != 'X' && player != 'O');
+	loadingScreen();
 
-	playerMove(spaces, player);
-	drawBoard(spaces, player, computer, name, playerScore, computerScore);
-	computerMove(spaces, computer, difficulty);
-	drawBoard(spaces, player, computer, name, playerScore, computerScore);
-
-	system("pause>0");
-	return 0;
+	while (isRunning)
+	{
+		playerMove(spaces , player);
+		drawBoard(spaces , name , playerScore, computerScore);
+		if (checkWinner(spaces , player))
+		{
+			cout << "WINNER WINNER CHICKEN DINNER!" << "\n";
+			playerScore++;
+		}
+		else if(checkTie(spaces)) cout << "Draw!" << "\n";
+		else
+		{
+			cout << "YOU LOSE!" << "\n";
+			computerScore++;
+		}
+		computerMove(spaces, computer, difficulty);
+		drawBoard(spaces , name , playerScore , computerScore);
+		if (checkWinner(spaces , player))
+		{
+			cout << "WINNER WINNER CHICKEN DINNER!" << "\n";
+			playerScore++;
+		}
+		else if (checkTie(spaces)) cout << "Draw!" << "\n";
+		else
+		{
+			cout << "YOU LOSE!" << "\n";
+			computerScore++;
+		}
+		cout << "Do you want to play again(Y/N): ";
+		cin >> playingAgain;
+		if (playingAgain != 'Y' && playingAgain != 'y')
+		{
+			isRunning = 0;
+			return 0;
+		}
+	}
 }
