@@ -33,9 +33,49 @@ void playerMove(char* spaces, char player)
 		if (spaces[move] == ' ')
 		{
 			spaces[move] = player;
+			system("cls");
 			break;
 		}
 	}
+}
+
+bool checkWinner(char* spaces, char player)
+{
+	bool isWinning = false;
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (spaces[i * 3] == player && spaces[i * 3 + 1] == player && spaces[i * 3 + 2] == player)
+		{
+			isWinning = true;
+			break;
+		}
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (spaces[i] == player && spaces[i + 3] == player && spaces[i + 6] == player)
+		{
+			isWinning = true;
+			break;
+		}
+	}
+
+	if ((spaces[0] == player && spaces[4] == player && spaces[8] == player) || (spaces[2] == player && spaces[4] == player && spaces[6] == player))
+	{
+		isWinning = true;
+	}
+
+	return isWinning;
+}
+
+bool checkTie(char* spaces)
+{
+	for (int i = 0; i < 9; i++)
+	{
+		if (spaces[i] == ' ') return false;
+	}
+	return true;
 }
 
 void easyMove(char* spaces, char computer)
@@ -108,85 +148,84 @@ void normalMove(char* spaces , char player , char computer)
 	easyMove(spaces, computer);
 }
 
-void hardMove(char* spaces, char computer)
+int evaluate(char* spaces, char player, char computer)
 {
+	if (checkWinner(spaces, computer)) return +1;
+	else if (checkWinner(spaces, player)) return -1;
+	else return 0;
+}
 
+int minimax(char* spaces, char player, char computer, bool isMaximizing)
+{
+	int score = evaluate(spaces, player, computer);
+
+	if (score == 1) return score;
+	if (score == -1) return score;
+	if (checkTie(spaces)) return 0;
+
+	if (isMaximizing)
+	{
+		int best = INT_MIN;
+		for (int i = 0; i < 9; i++)
+		{
+			if (spaces[i] == ' ')
+			{
+				spaces[i] = computer;
+				best = max(best, minimax(spaces, player, computer, !isMaximizing));
+				spaces[i] = ' ';
+			}
+		}
+		return best;
+	}
+	else
+	{
+		int best = INT_MAX;
+		for (int i = 0; i < 9; i++)
+		{
+			if (spaces[i] == ' ')
+			{
+				spaces[i] = player;
+				best = min(best, minimax(spaces, player, computer, !isMaximizing));
+				spaces[i] = ' ';
+			}
+		}
+		return best;
+	}
+}
+
+int findBestMove(char* spaces, char player, char computer)
+{
+	int bestMove = -1, bestValue = INT_MIN;
+
+	for (int i = 0; i < 9; i++)
+	{
+		if (spaces[i] == ' ')
+		{
+			spaces[i] = computer;
+			int moveValue = minimax(spaces, player, computer, false);
+			spaces[i] = ' ';
+
+			if (moveValue > bestValue)
+			{
+				bestMove = i;
+				bestValue = moveValue;
+			}
+		}
+	}
+	return bestMove;
+}
+
+void hardMove(char* spaces, char player , char computer)
+{
+	int bestMove = findBestMove(spaces, player, computer);
+	if (bestMove != -1) spaces[bestMove] = computer;
 }
 
 void computerMove(char* spaces, char player, char computer, int difficulty)
 {
 	if (difficulty == 1) easyMove(spaces, computer);
 	else if (difficulty == 2) normalMove(spaces, player, computer);
-	else if (difficulty == 3) hardMove(spaces, computer);
-}
-
-bool checkWinner(char* spaces, char player)
-{
-	bool isWinning = false;
-
-	for (int i = 0; i < 3; i++)
-	{
-		if (spaces[i * 3] == player && spaces[i * 3 + 1] == player && spaces[i * 3 + 2] == player)
-		{
-			isWinning = true;
-			break;
-		}
-	}
-
-	for (int i = 0; i < 3; i++)
-	{
-		if (spaces[i] == player && spaces[i + 3] == player && spaces[i + 6] == player)
-		{
-			isWinning = true;
-			break;
-		}
-	}
-
-	if ((spaces[0] == player && spaces[4] == player && spaces[8] == player) || (spaces[2] == player && spaces[4] == player && spaces[6] == player))
-	{
-		isWinning = true;
-	}
-
-	return isWinning;
-}
-
-bool checkLose(char* spaces , char computer)
-{
-	bool isLosing = false;
-
-	for (int i = 0; i < 3; i++)
-	{
-		if (spaces[i * 3] == computer && spaces[i * 3 + 1] == computer && spaces[i * 3 + 2] == computer)
-		{
-			isLosing = true;
-			break;
-		}
-	}
-
-	for (int i = 0; i < 3; i++)
-	{
-		if (spaces[i] == computer && spaces[i + 3] == computer && spaces[i + 6] == computer)
-		{
-			isLosing = true;
-			break;
-		}
-	}
-
-	if ((spaces[0] == computer && spaces[4] == computer && spaces[8] == computer) || (spaces[2] == computer && spaces[4] == computer && spaces[6] == computer))
-	{
-		isLosing = true;
-	}
-
-	return isLosing;
-}
-
-bool checkTie(char* spaces)
-{
-	for (int i = 0; i < 9; i++)
-	{
-		if (spaces[i] == ' ') return false;
-	}
-	return true;
+	else if (difficulty == 3) hardMove(spaces, player , computer);
 }
 
 void setBoard(char* spaces)
@@ -248,7 +287,7 @@ int main()
 				setBoard(spaces);
 				break;
 			}
-			else if (checkLose(spaces, computer))
+			else if (checkWinner(spaces, computer))
 			{
 				cout << "YOU LOSE!" << "\n";
 				computerScore++;
@@ -274,7 +313,7 @@ int main()
 				setBoard(spaces);
 				break;
 			}
-			else if (checkLose(spaces, computer))
+			else if (checkWinner(spaces, computer))
 			{
 				cout << "YOU LOSE!" << "\n";
 				computerScore++;
