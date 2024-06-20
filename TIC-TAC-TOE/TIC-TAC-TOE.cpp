@@ -1,25 +1,9 @@
 #include <iostream>
 #include <ctime>
-#include <cmath>
 #include <string>
 #include <Windows.h>
 
 using namespace std;
-
-/*
-* 3 difficulties : Easy , Normal , Hard , each one has a specific formula
-* main menu : the title , select the character , select the difficulty , the nickname of the user , the grid of the game
-* each player has his own score
-* when one of the players win the score is incremented by 1
-* when they draw the score still the same
-* when the game end a message pop out and says "Do you want to play again (Y/N) ?"
-* after the move of the player and the computer the grid will display
-* the functions of the game : drawBoard , PlayerMove , ComputerMove Based On The Difficulty , CheckWinner , CheckTie , DisplayMenu
-* the game will run until the user exit by himself
-* Easy Difficulty: The computer makes random moves.
-* Normal Difficulty: The computer attempts to win if possible; otherwise, it blocks the player's winning move if they are about to win. If neither condition is met, it makes a random move.
-* Hard Difficulty: The computer uses the Minimax algorithm to play optimally.
-*/
 
 void drawBoard(char* spaces , string name , int playerScore , int computerScore)
 {
@@ -38,13 +22,20 @@ void drawBoard(char* spaces , string name , int playerScore , int computerScore)
 void playerMove(char* spaces, char player)
 {
 	int move;
-	do
+	while (true)
 	{
-		cout << "Enter Your Move(1-9): ";
-		cin >> move;
-	} while (move < 1 || move > 9 || spaces[move] != ' ');
-	move--;
-	spaces[move] = player;
+		do
+		{
+			cout << "Enter Your Move(1-9): ";
+			cin >> move;
+			move--;
+		} while (move < 0 || move > 8);
+		if (spaces[move] == ' ')
+		{
+			spaces[move] = player;
+			break;
+		}
+	}
 }
 
 void easyMove(char* spaces, char computer)
@@ -77,9 +68,62 @@ void computerMove(char* spaces, char computer, int difficulty)
 
 bool checkWinner(char* spaces, char player)
 {
-	bool isWinning = 0;
+	bool isWinning = false;
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (spaces[i * 3] == player && spaces[i * 3 + 1] == player && spaces[i * 3 + 2] == player)
+		{
+			isWinning = true;
+			break;
+		}
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (spaces[i] == player && spaces[i + 3] == player && spaces[i + 6] == player)
+		{
+			isWinning = true;
+			break;
+		}
+	}
+
+	if ((spaces[0] == player && spaces[4] == player && spaces[8] == player) || (spaces[2] == player && spaces[4] == player && spaces[6] == player))
+	{
+		isWinning = true;
+	}
 
 	return isWinning;
+}
+
+bool checkLose(char* spaces , char computer)
+{
+	bool isLosing = false;
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (spaces[i * 3] == computer && spaces[i * 3 + 1] == computer && spaces[i * 3 + 2] == computer)
+		{
+			isLosing = true;
+			break;
+		}
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (spaces[i] == computer && spaces[i + 3] == computer && spaces[i + 6] == computer)
+		{
+			isLosing = true;
+			break;
+		}
+	}
+
+	if ((spaces[0] == computer && spaces[4] == computer && spaces[8] == computer) || (spaces[2] == computer && spaces[4] == computer && spaces[6] == computer))
+	{
+		isLosing = true;
+	}
+
+	return isLosing;
 }
 
 bool checkTie(char* spaces)
@@ -89,6 +133,11 @@ bool checkTie(char* spaces)
 		if (spaces[i] == ' ') return false;
 	}
 	return true;
+}
+
+void setBoard(char* spaces)
+{
+	for (int i = 0; i < 9; i++) spaces[i] = ' ';
 }
 
 void loadingScreen()
@@ -108,8 +157,8 @@ int main()
 	char spaces[9] = { ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' };
 	char player, computer{} , playingAgain{};
 	int difficulty , playerScore = 0 , computerScore = 0;
-	bool isRunning = 1;
 	string name;
+	bool isRunning = true;
 
 	cout << "\t\tTIC-TAC-TOE-V1.00\n\n";
 
@@ -121,47 +170,92 @@ int main()
 
 	do
 	{
-		cout << "Choose[X | O]: ";
+		cout << "Choose(X/O): ";
 		cin >> player;
 		if (player == 'X') computer = 'O';
 		else if(player == 'O') computer = 'X';
 	} while (player != 'X' && player != 'O');
+
 	loadingScreen();
 
-	while (isRunning)
+	drawBoard(spaces, name, playerScore, computerScore);
+	
+	while (true)
 	{
-		playerMove(spaces , player);
-		drawBoard(spaces , name , playerScore, computerScore);
-		if (checkWinner(spaces , player))
+		while (isRunning)
 		{
-			cout << "WINNER WINNER CHICKEN DINNER!" << "\n";
-			playerScore++;
+			playerMove(spaces, player);
+			drawBoard(spaces, name, playerScore, computerScore);
+			if (checkWinner(spaces, player))
+			{
+				cout << "WINNER WINNER CHICKEN DINNER!" << "\n";
+				playerScore++;
+				isRunning = false;
+				setBoard(spaces);
+				break;
+			}
+			else if (checkLose(spaces, computer))
+			{
+				cout << "YOU LOSE!" << "\n";
+				computerScore++;
+				isRunning = false;
+				setBoard(spaces);
+				break;
+			}
+			else if (checkTie(spaces))
+			{
+				cout << "Draw!" << "\n";
+				isRunning = false;
+				setBoard(spaces);
+				break;
+			}
+
+			computerMove(spaces, computer, difficulty);
+			drawBoard(spaces, name, playerScore, computerScore);
+			if (checkWinner(spaces, player))
+			{
+				cout << "WINNER WINNER CHICKEN DINNER!" << "\n";
+				playerScore++;
+				isRunning = false;
+				setBoard(spaces);
+				break;
+			}
+			else if (checkLose(spaces, computer))
+			{
+				cout << "YOU LOSE!" << "\n";
+				computerScore++;
+				isRunning = false;
+				setBoard(spaces);
+				break;
+			}
+			else if (checkTie(spaces))
+			{
+				cout << "Draw!" << "\n";
+				isRunning = false;
+				setBoard(spaces);
+				break;
+			}
 		}
-		else if(checkTie(spaces)) cout << "Draw!" << "\n";
-		else
-		{
-			cout << "YOU LOSE!" << "\n";
-			computerScore++;
-		}
-		computerMove(spaces, computer, difficulty);
-		drawBoard(spaces , name , playerScore , computerScore);
-		if (checkWinner(spaces , player))
-		{
-			cout << "WINNER WINNER CHICKEN DINNER!" << "\n";
-			playerScore++;
-		}
-		else if (checkTie(spaces)) cout << "Draw!" << "\n";
-		else
-		{
-			cout << "YOU LOSE!" << "\n";
-			computerScore++;
-		}
+
 		cout << "Do you want to play again(Y/N): ";
 		cin >> playingAgain;
-		if (playingAgain != 'Y' && playingAgain != 'y')
+		if (playingAgain == 'Y' || playingAgain == 'y')
 		{
-			isRunning = 0;
-			return 0;
+			isRunning = true;
+			loadingScreen();
+			drawBoard(spaces , name , playerScore , computerScore);
+		}
+		else if (playingAgain == 'N' || playingAgain == 'n')
+		{
+			system("cls");
+			cout << "THANKS FOR PLAYING!" << "\n";
+			break;
+		}
+		else
+		{
+			system("cls");
+			cout << "INVALID INPUT, PLEASE TRY AGAIN!" << "\n";
 		}
 	}
+	return 0;
 }
