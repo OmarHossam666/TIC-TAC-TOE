@@ -49,9 +49,63 @@ void easyMove(char* spaces, char computer)
 	spaces[move] = computer;
 }
 
-void normalMove(char* spaces, char computer)
+bool canWin(char* spaces, char computer)
 {
+	int winCombos[8][3] = { {0 , 1 , 2} , {3 , 4 , 5} , {6 , 7 , 8} , {0 , 3 , 6} , {1 , 4 , 7} , {2 , 5 , 8} , {0 , 4 , 8} , {2 , 4 , 6} };
 
+	for (int i = 0; i < 8; i++)
+	{
+		if (spaces[winCombos[i][0]] == computer && spaces[winCombos[i][1]] == computer && spaces[winCombos[i][2]] == ' ')
+		{
+			spaces[winCombos[i][2]] = computer;
+			return true;
+		}
+		if (spaces[winCombos[i][0]] == computer && spaces[winCombos[i][1]] == ' ' && spaces[winCombos[i][2]] == computer)
+		{
+			spaces[winCombos[i][1]] = computer;
+			return true;
+		}
+		if (spaces[winCombos[i][0]] == ' ' && spaces[winCombos[i][1]] == computer && spaces[winCombos[i][2]] == computer)
+		{
+			spaces[winCombos[i][0]] = computer;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool canBlock(char* spaces, char player, char computer)
+{
+	int winCombos[8][3] = { {0 , 1 , 2} , {3 , 4 , 5} , {6 , 7 , 8} , {0 , 3 , 6} , {1 , 4 , 7} , {2 , 5 , 8} , {0 , 4 , 8} , {2 , 4 , 6} };
+
+	for (int i = 0; i < 8; i++)
+	{
+		if (spaces[winCombos[i][0]] == player && spaces[winCombos[i][1]] == player && spaces[winCombos[i][2]] == ' ')
+		{
+			spaces[winCombos[i][2]] = computer;
+			return true;
+		}
+		if (spaces[winCombos[i][0]] == player && spaces[winCombos[i][1]] == ' ' && spaces[winCombos[i][2]] == player)
+		{
+			spaces[winCombos[i][1]] = computer;
+			return true;
+		}
+		if (spaces[winCombos[i][0]] == ' ' && spaces[winCombos[i][1]] == player && spaces[winCombos[i][2]] == player)
+		{
+			spaces[winCombos[i][0]] = computer;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void normalMove(char* spaces , char player , char computer)
+{
+	if (canWin(spaces, computer)) return;
+	if (canBlock(spaces, player, computer)) return;
+	easyMove(spaces, computer);
 }
 
 void hardMove(char* spaces, char computer)
@@ -59,10 +113,10 @@ void hardMove(char* spaces, char computer)
 
 }
 
-void computerMove(char* spaces, char computer, int difficulty)
+void computerMove(char* spaces, char player, char computer, int difficulty)
 {
 	if (difficulty == 1) easyMove(spaces, computer);
-	else if (difficulty == 2) normalMove(spaces, computer);
+	else if (difficulty == 2) normalMove(spaces, player, computer);
 	else if (difficulty == 3) hardMove(spaces, computer);
 }
 
@@ -210,7 +264,7 @@ int main()
 				break;
 			}
 
-			computerMove(spaces, computer, difficulty);
+			computerMove(spaces, player, computer, difficulty);
 			drawBoard(spaces, name, playerScore, computerScore);
 			if (checkWinner(spaces, player))
 			{
